@@ -3,7 +3,7 @@
 תוסף לכרום לשליטה בטאב באמצעות מחוות ידיים מול המצלמה, בהשראת הטרקפד של מק.
 
 - 📄 תכנון: [docs/PRD.md](docs/PRD.md)
-- 🧪 Test Bed: https://liori9.github.io/-minority-report-pad/
+- 🧪 Test Bed: https://liori9.github.io/minority-report-pad/
 
 ## מבנה
 | תיקייה | תפקיד |
