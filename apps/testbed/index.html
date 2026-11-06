@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Minority Report Pad · Test Bed</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Minority Report Pad <span>Test Bed</span></h1>
+      <button id="start">הפעל מצלמה</button>
+    </header>
+    <main>
+      <section class="stage">
+        <video id="video" playsinline muted></video>
+        <canvas id="overlay"></canvas>
+        <p id="status" class="status">לחץ "הפעל מצלמה" כדי להתחיל</p>
+      </section>
+      <section class="panel">
+        <h2>מעבדת מחוות</h2>
+        <dl id="hands"></dl>
+        <dl>
+          <dt>FPS</dt><dd id="fps">–</dd>
+          <dt>זמן זיהוי</dt><dd id="latency">–</dd>
+        </dl>
+      </section>
+    </main>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
