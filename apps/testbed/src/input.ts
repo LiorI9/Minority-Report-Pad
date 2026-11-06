@@ -2,12 +2,23 @@
  * Injects synthetic pointer/mouse events at the virtual cursor position.
  * This mirrors what the extension's content script will do in 0.1 (isTrusted === false).
  */
+export type CursorMode = 'move' | 'click' | 'scroll' | 'grab' | 'idle';
+
 export class SyntheticInput {
   private x = 0;
   private y = 0;
   private dragging = false;
 
   constructor(private readonly cursorEl: HTMLElement) {}
+
+  private mode: CursorMode = 'move';
+
+  /** Cursor look follows the motion-hand pose. */
+  setMode(mode: CursorMode): void {
+    if (mode === this.mode) return;
+    this.cursorEl.classList.replace(`mode-${this.mode}`, `mode-${mode}`);
+    this.mode = mode;
+  }
 
   setVisible(visible: boolean): void {
     this.cursorEl.hidden = !visible;

@@ -55,7 +55,6 @@ output { color: var(--accent); }
 .dnd-card { padding: 10px 12px; background: #2b3a4f; border-radius: 8px; cursor: grab; }
 .dropzone { flex: 1; min-width: 100px; border: 2px dashed var(--line); border-radius: 8px; display: grid; place-items: center; color: var(--muted); padding: 10px; }
 .dropzone.over { border-color: var(--accent); }
-.log-head { display: flex; justify-content: space-between; align-items: center; }
 .log table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
 .log th, .log td { text-align: start; padding: 4px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .log td:nth-child(4) { white-space: normal; }
@@ -67,3 +66,72 @@ output { color: var(--accent); }
 .cursor.dragging { border-color: var(--ok); background: #3fb95055; }
 .toast { position: fixed; z-index: 1001; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; font-weight: 700; padding: 10px 18px; border-radius: 999px; pointer-events: none; }
 @media (max-width: 760px) { .log th:nth-child(1), .log td:nth-child(1) { display: none; } }
+
+/* --- Panel heads & collapse ------------------------------------------------ */
+.head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.head h2 { margin: 0; }
+.actions { display: flex; gap: 8px; align-items: center; }
+.panel > .head, .log > .head { margin-bottom: 8px; }
+.targets > .head { margin-bottom: 8px; }
+.collapse { width: 28px; height: 28px; padding: 0; line-height: 1; }
+.collapsed > :not(.head) { display: none !important; }
+.targets .collapse { display: none; }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.85rem; }
+.legend li { display: flex; align-items: center; gap: 8px; }
+.swatch { width: 16px; height: 16px; border-radius: 50%; border: 3px solid; display: inline-block; }
+.swatch.move { border-color: #f5c518; }
+.swatch.click { border-color: #ff7b54; background: #ff7b54; }
+.swatch.scroll { border-color: #58a6ff; border-radius: 6px; }
+.swatch.grab { border-color: #3fb950; }
+.swatch.idle { border-color: #6e7681; border-style: dashed; }
+
+/* --- Cursor modes (by motion-hand pose) ------------------------------------ */
+.cursor { display: grid; place-items: center; transition: transform 80ms, width 120ms, height 120ms, margin 120ms, border-radius 120ms, background 120ms, border-color 120ms; }
+.cursor .icon { display: none; width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.cursor.mode-move { color: #f5c518; }
+.cursor.mode-click { width: 22px; height: 22px; margin: -11px 0 0 -11px; border-color: #ff7b54; background: #ff7b5444; color: #ff7b54; }
+.cursor.mode-click .icon-click { display: block; fill: currentColor; stroke: none; }
+.cursor.mode-scroll { width: 30px; height: 42px; margin: -21px 0 0 -15px; border-radius: 15px; border-color: #58a6ff; background: #58a6ff33; color: #58a6ff; }
+.cursor.mode-scroll .icon-scroll { display: block; width: 80%; height: 80%; }
+.cursor.mode-grab { width: 40px; height: 40px; margin: -20px 0 0 -20px; border-color: #3fb950; background: #3fb95022; color: #3fb950; }
+.cursor.mode-grab .icon-grab { display: block; }
+.cursor.mode-grab.dragging { background: #3fb950; color: #000; transform: scale(0.85); }
+.cursor.mode-idle { width: 20px; height: 20px; margin: -10px 0 0 -10px; border-color: #6e7681; border-style: dashed; background: transparent; }
+.cursor.pressed { transform: scale(0.6); }
+
+/* --- Full-screen mode ------------------------------------------------------ */
+body.fs { overflow: hidden; }
+body.fs header { position: fixed; z-index: 20; inset: 0 0 auto 0; background: linear-gradient(#000c, #0000); }
+body.fs .stage { position: fixed; inset: 0; z-index: 0; border-radius: 0; aspect-ratio: auto; max-height: none; }
+body.fs .stage .badge { top: 64px; inset-inline-start: auto; inset-inline-end: 16px; }
+body.fs .overlay-lab,
+body.fs .overlay-targets,
+body.fs .overlay-log {
+  position: fixed; z-index: 10; margin: 0; overflow: auto;
+  background: rgba(19, 26, 34, 0.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid #ffffff1a; border-radius: 12px; padding: 10px 12px;
+}
+body.fs .overlay-lab { top: 64px; inset-inline-start: 16px; width: 280px; max-height: calc(100vh - 80px); }
+body.fs .overlay-log { bottom: 16px; inset-inline-end: 16px; width: min(520px, calc(100vw - 32px)); max-height: 34vh; }
+body.fs .overlay-targets { bottom: 16px; inset-inline-start: 312px; inset-inline-end: 552px; max-height: 46vh; }
+body.fs .overlay-targets .collapse { display: inline-block; }
+body.fs .overlay-targets .card { background: rgba(11, 15, 20, 0.55); }
+body.fs .overlay-targets .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+@media (max-width: 1200px) {
+  body.fs .overlay-targets { inset-inline-start: 16px; inset-inline-end: 16px; bottom: calc(34vh + 32px); max-height: 30vh; }
+  body.fs .overlay-lab { max-height: calc(100vh - 34vh - 30vh - 120px); }
+}
+@media (max-width: 760px) {
+  body.fs .overlay-lab { width: calc(100vw - 32px); max-height: 40vh; }
+  body.fs .overlay-log { max-height: 26vh; }
+  body.fs .overlay-targets { bottom: calc(26vh + 32px); max-height: 26vh; }
+}
+/* Fixed height so new log rows never shift the panel (and its buttons) mid-click. */
+body.fs .overlay-log:not(.collapsed) { height: 34vh; }
+@media (max-width: 760px) { body.fs .overlay-log:not(.collapsed) { height: 26vh; } }
+.cursor[hidden], .toast[hidden] { display: none; }
+@media (max-width: 760px) {
+  h1 { font-size: 0.95rem; }
+  body.fs .overlay-lab { top: 92px; max-height: calc(100vh - 26vh - 26vh - 150px); }
+  body.fs .stage .badge { top: 92px; }
+}

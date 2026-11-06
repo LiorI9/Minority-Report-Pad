@@ -9,7 +9,10 @@
   <body>
     <header>
       <h1>Minority Report Pad <span>Test Bed</span></h1>
-      <button id="start">הפעל מצלמה</button>
+      <div class="actions">
+        <button id="fullscreen" class="ghost">⛶ מסך מלא</button>
+        <button id="start">הפעל מצלמה</button>
+      </div>
     </header>
 
     <main class="top">
@@ -20,8 +23,8 @@
         <p id="status" class="status">לחץ "הפעל מצלמה" כדי להתחיל</p>
       </section>
 
-      <section class="panel">
-        <h2>מעבדת מחוות</h2>
+      <section class="panel overlay-lab">
+        <div class="head"><h2>מעבדת מחוות</h2><button class="collapse ghost" aria-label="כווץ">–</button></div>
         <dl>
           <dt>מצמד</dt><dd id="clutch">–</dd>
           <dt>אצבעות (גולמי)</dt><dd id="raw">–</dd>
@@ -30,6 +33,14 @@
           <dt>FPS</dt><dd id="fps">–</dd>
           <dt>זמן זיהוי</dt><dd id="latency">–</dd>
         </dl>
+        <h3>מקרא סמן</h3>
+        <ul class="legend">
+          <li><i class="swatch move"></i>5 · תזוזה</li>
+          <li><i class="swatch click"></i>1 · לחיצה</li>
+          <li><i class="swatch scroll"></i>2 · ימנית / גלילה</li>
+          <li><i class="swatch grab"></i>3 · גרירה / טאב</li>
+          <li><i class="swatch idle"></i>אגרוף · מנוחה</li>
+        </ul>
         <h3>כיול</h3>
         <label>יד דומיננטית (מזיזה את הסמן)
           <select id="dominant">
@@ -48,8 +59,8 @@
       </section>
     </main>
 
-    <section class="targets">
-      <h2>אזורי מטרה</h2>
+    <section class="targets overlay-targets">
+      <div class="head"><h2>אזורי מטרה</h2><button class="collapse ghost" aria-label="כווץ">–</button></div>
       <div class="grid">
         <article class="card">
           <h3>לחיצה (אצבע 1)</h3>
@@ -98,10 +109,13 @@
       </div>
     </section>
 
-    <section class="log">
-      <div class="log-head">
+    <section class="log overlay-log">
+      <div class="head">
         <h2>לוג אירועים</h2>
-        <button id="clear-log" class="ghost">נקה</button>
+        <div class="actions">
+          <button id="clear-log" class="ghost">נקה</button>
+          <button class="collapse ghost" aria-label="כווץ">–</button>
+        </div>
       </div>
       <table>
         <thead><tr><th>זמן</th><th>מקור</th><th>אירוע</th><th>מטרה</th><th>isTrusted</th></tr></thead>
@@ -109,7 +123,11 @@
       </table>
     </section>
 
-    <div id="cursor" class="cursor" hidden></div>
+    <div id="cursor" class="cursor mode-move" hidden>
+      <svg class="icon icon-scroll" viewBox="0 0 24 24"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg>
+      <svg class="icon icon-grab" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>
+      <svg class="icon icon-click" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></svg>
+    </div>
     <div id="toast" class="toast" hidden></div>
     <script type="module" src="./src/main.ts"></script>
   </body>

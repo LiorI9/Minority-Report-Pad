@@ -1,6 +1,6 @@
 import { FilesetResolver, HandLandmarker, type HandLandmarkerResult } from '@mediapipe/tasks-vision';
 import { GestureEngine, type EngineFrame, type GestureEvent, type HandInput, type Handedness } from '@mrp/gesture-engine';
-import { SyntheticInput } from './input';
+import { SyntheticInput, type CursorMode } from './input';
 import { EventLog } from './log';
 import { setupTargets } from './targets';
 
@@ -46,6 +46,37 @@ const log = new EventLog($<HTMLTableSectionElement>('log-body'));
 setupTargets();
 log.watch(['click', 'contextmenu', 'mousedown', 'mouseup', 'wheel', 'scroll', 'dragstart', 'drop']);
 $('clear-log').addEventListener('click', () => log.clear());
+
+// --- Layout: full screen + collapsible panels ------------------------------
+const fsButton = $('fullscreen');
+function setFullscreen(on: boolean): void {
+  document.body.classList.toggle('fs', on);
+  fsButton.textContent = on ? '▣ תצוגה רגילה' : '⛶ מסך מלא';
+  // On narrow screens start with the busy panels collapsed.
+  if (on && window.innerWidth < 760) {
+    document.querySelectorAll('.overlay-targets, .overlay-log').forEach((el) => setCollapsed(el, true));
+  }
+  if (!on) document.querySelectorAll('.collapsed').forEach((el) => setCollapsed(el, false));
+  // Real browser full screen where supported (not on iPhone Safari).
+  const root = document.documentElement;
+  if (on && !document.fullscreenElement && root.requestFullscreen) void root.requestFullscreen().catch(() => {});
+  if (!on && document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+}
+function setCollapsed(panel: Element, collapsed: boolean): void {
+  panel.classList.toggle('collapsed', collapsed);
+  const btn = panel.querySelector('.collapse');
+  if (btn) btn.textContent = collapsed ? '+' : '–';
+}
+fsButton.addEventListener('click', () => setFullscreen(!document.body.classList.contains('fs')));
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && document.body.classList.contains('fs')) setFullscreen(false);
+});
+document.querySelectorAll('.collapse').forEach((btn) =>
+  btn.addEventListener('click', () => {
+    const panel = btn.closest('section');
+    if (panel) setCollapsed(panel, !panel.classList.contains('collapsed'));
+  }),
+);
 
 // --- Settings ---------------------------------------------------------------
 function applySettings(): void {
@@ -181,6 +212,7 @@ function toast(text: string): void {
 function handle(frame: EngineFrame): void {
   const control = ui.control.checked;
   input.setVisible(control && frame.clutch === 'active');
+  input.setMode(cursorMode(frame));
   if (control) input.move(frame.cursor.x * window.innerWidth, frame.cursor.y * window.innerHeight);
 
   for (const e of frame.events) {
@@ -197,6 +229,11 @@ function handle(frame: EngineFrame): void {
     }
   }
   if (!control) input.dragEnd();
+}
+
+const MODE_BY_POSE: Record<number, CursorMode> = { 0: 'idle', 1: 'click', 2: 'scroll', 3: 'grab', 5: 'move' };
+function cursorMode(frame: EngineFrame): CursorMode {
+  return frame.pose === null ? 'move' : (MODE_BY_POSE[frame.pose] ?? 'move');
 }
 
 function logGesture(e: GestureEvent): void {
