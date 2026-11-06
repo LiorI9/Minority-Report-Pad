@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Minority Report Pad · הגדרות</title>
+    <link rel="stylesheet" href="~/utils/ui.css" />
+    <style>
+      body { max-width: 520px; margin: 0 auto; padding: 24px 16px; }
+      section { background: var(--panel); border-radius: 12px; padding: 12px 16px; margin-top: 16px; }
+      h2 { font-size: 0.95rem; margin: 0 0 8px; }
+    </style>
+  </head>
+  <body>
+    <h1>Minority Report <span>Pad</span> · הגדרות</h1>
+
+    <section>
+      <h2>מצלמה</h2>
+      <p class="muted">התוסף מעבד את הווידאו מקומית במחשב. שום תמונה לא יוצאת ממנו.</p>
+      <button id="grant">אשר גישה למצלמה</button>
+      <p id="grant-status" class="muted"></p>
+    </section>
+
+    <section>
+      <h2>כיול</h2>
+      <label>יד דומיננטית (מזיזה את הסמן)
+        <select id="dominant" data-setting="dominant"><option value="Right">ימין</option><option value="Left">שמאל</option></select>
+      </label>
+      <label><input type="checkbox" id="swap" data-setting="swapHandedness" /> החלף תוויות ימין/שמאל של המודל</label>
+      <label>רגישות סמן <output for="gain"></output>
+        <input type="range" id="gain" data-setting="gain" min="1" max="8" step="0.5" />
+      </label>
+      <label>ייצוב תנוחה (ms) <output for="stable"></output>
+        <input type="range" id="stable" data-setting="stableMs" min="0" max="400" step="10" />
+      </label>
+    </section>
+
+    <section>
+      <h2>שימוש</h2>
+      <p class="muted">הפעלה: קליק על האייקון או Alt+Shift+M. יד שמאל פתוחה = מצמד פעיל, אגרוף = מושהה. יד ימין: 5 תזוזה, 1 לחיצה, 2 ימנית/גלילה, 3 גרירה/החלקה להחלפת טאב.</p>
+    </section>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

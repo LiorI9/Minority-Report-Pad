@@ -15,6 +15,8 @@
 | [009](009-distance-validation.md) | אימות מרחק: 90% ב-1 מטר, אימות ויזואלי |
 | [010](010-gesture-engine-design.md) | תכנון מנוע המחוות |
 | [011](011-handedness-swap.md) | החלפת תוויות ימין/שמאל של MediaPipe |
+| [012](012-activation.md) | הפעלה — פופאפ + קיצור מקלדת + תג |
+| [013](013-mediapipe-packaging.md) | אריזת MediaPipe בתוך התוסף |
 
 ## תבנית
 ```markdown

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Minority Report Pad</title>
+    <link rel="stylesheet" href="~/utils/ui.css" />
+    <style>
+      body { width: 300px; padding: 12px; }
+      canvas { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 8px; margin: 10px 0; transform: scaleX(-1); }
+      dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; }
+      dt { color: var(--muted); }
+      dd { margin: 0; }
+      #status { margin: 8px 0 0; font-size: 0.9rem; }
+      #permission { width: 100%; margin-top: 8px; }
+      .links { margin-top: 10px; font-size: 0.85rem; }
+      a { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <h1>Minority Report <span>Pad</span></h1>
+      <button id="toggle" class="switch" role="switch" aria-checked="false" aria-label="הפעלה"></button>
+    </div>
+    <p id="status" class="muted">כבוי · Alt+Shift+M להפעלה</p>
+    <button id="permission" hidden>אשר גישה למצלמה</button>
+    <canvas id="preview" width="320" height="180"></canvas>
+    <dl>
+      <dt>מצמד</dt><dd id="clutch">–</dd>
+      <dt>תנוחה</dt><dd id="pose">–</dd>
+      <dt>FPS</dt><dd id="fps">–</dd>
+      <dt>זמן זיהוי</dt><dd id="detect">–</dd>
+    </dl>
+    <label>יד דומיננטית
+      <select id="dominant" data-setting="dominant"><option value="Right">ימין</option><option value="Left">שמאל</option></select>
+    </label>
+    <label>רגישות סמן <output for="gain"></output>
+      <input type="range" id="gain" data-setting="gain" min="1" max="8" step="0.5" />
+    </label>
+    <div class="links"><a href="#" id="options">כל ההגדרות</a></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

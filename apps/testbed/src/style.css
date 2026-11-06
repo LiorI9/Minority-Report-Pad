@@ -61,9 +61,6 @@ output { color: var(--accent); }
 .log tbody { font-variant-numeric: tabular-nums; }
 .yes { color: var(--ok); font-weight: 700; }
 .no { color: var(--bad); font-weight: 700; }
-.cursor { position: fixed; z-index: 1000; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; border: 3px solid var(--accent); background: #f5c51833; pointer-events: none; transition: transform 80ms; left: 0; top: 0; }
-.cursor.pressed { transform: scale(0.7); background: var(--accent); }
-.cursor.dragging { border-color: var(--ok); background: #3fb95055; }
 .toast { position: fixed; z-index: 1001; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; font-weight: 700; padding: 10px 18px; border-radius: 999px; pointer-events: none; }
 @media (max-width: 760px) { .log th:nth-child(1), .log td:nth-child(1) { display: none; } }
 
@@ -84,20 +81,6 @@ output { color: var(--accent); }
 .swatch.scroll { border-color: #58a6ff; border-radius: 6px; }
 .swatch.grab { border-color: #3fb950; }
 .swatch.idle { border-color: #6e7681; border-style: dashed; }
-
-/* --- Cursor modes (by motion-hand pose) ------------------------------------ */
-.cursor { display: grid; place-items: center; transition: transform 80ms, width 120ms, height 120ms, margin 120ms, border-radius 120ms, background 120ms, border-color 120ms; }
-.cursor .icon { display: none; width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-.cursor.mode-move { color: #f5c518; }
-.cursor.mode-click { width: 22px; height: 22px; margin: -11px 0 0 -11px; border-color: #ff7b54; background: #ff7b5444; color: #ff7b54; }
-.cursor.mode-click .icon-click { display: block; fill: currentColor; stroke: none; }
-.cursor.mode-scroll { width: 30px; height: 42px; margin: -21px 0 0 -15px; border-radius: 15px; border-color: #58a6ff; background: #58a6ff33; color: #58a6ff; }
-.cursor.mode-scroll .icon-scroll { display: block; width: 80%; height: 80%; }
-.cursor.mode-grab { width: 40px; height: 40px; margin: -20px 0 0 -20px; border-color: #3fb950; background: #3fb95022; color: #3fb950; }
-.cursor.mode-grab .icon-grab { display: block; }
-.cursor.mode-grab.dragging { background: #3fb950; color: #000; transform: scale(0.85); }
-.cursor.mode-idle { width: 20px; height: 20px; margin: -10px 0 0 -10px; border-color: #6e7681; border-style: dashed; background: transparent; }
-.cursor.pressed { transform: scale(0.6); }
 
 /* --- Full-screen mode ------------------------------------------------------ */
 body.fs { overflow: hidden; }
@@ -129,7 +112,7 @@ body.fs .overlay-targets .grid { grid-template-columns: repeat(auto-fill, minmax
 /* Fixed height so new log rows never shift the panel (and its buttons) mid-click. */
 body.fs .overlay-log:not(.collapsed) { height: 34vh; }
 @media (max-width: 760px) { body.fs .overlay-log:not(.collapsed) { height: 26vh; } }
-.cursor[hidden], .toast[hidden] { display: none; }
+.toast[hidden] { display: none; }
 @media (max-width: 760px) {
   h1 { font-size: 0.95rem; }
   body.fs .overlay-lab { top: 92px; max-height: calc(100vh - 26vh - 26vh - 150px); }

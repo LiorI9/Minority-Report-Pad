@@ -1,6 +1,6 @@
 import { FilesetResolver, HandLandmarker, type HandLandmarkerResult } from '@mediapipe/tasks-vision';
 import { GestureEngine, type EngineFrame, type GestureEvent, type HandInput, type Handedness } from '@mrp/gesture-engine';
-import { SyntheticInput, type CursorMode } from './input';
+import { SyntheticInput, mountCursor, type CursorMode } from '@mrp/page-input';
 import { EventLog } from './log';
 import { setupTargets } from './targets';
 
@@ -41,7 +41,7 @@ const HAND_LABEL: Record<Handedness, string> = { Right: 'ימין', Left: 'שמ�
 const POSE_LABEL: Record<number, string> = { 0: 'אגרוף', 1: '1 · לחיצה', 2: '2 · ימנית/גלילה', 3: '3 · גרירה/טאב', 5: '5 · תזוזה' };
 
 const engine = new GestureEngine();
-const input = new SyntheticInput($('cursor'));
+const input = new SyntheticInput(mountCursor(document.body));
 const log = new EventLog($<HTMLTableSectionElement>('log-body'));
 setupTargets();
 log.watch(['click', 'contextmenu', 'mousedown', 'mouseup', 'wheel', 'scroll', 'dragstart', 'drop']);

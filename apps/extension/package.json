@@ -1,0 +1,23 @@
+{
+  "name": "@mrp/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "assets": "node scripts/fetch-assets.mjs",
+    "dev": "npm run assets && wxt",
+    "build": "npm run assets && wxt build",
+    "zip": "npm run assets && wxt zip",
+    "typecheck": "wxt prepare && tsc --noEmit",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.0",
+    "@mrp/gesture-engine": "*",
+    "@mrp/page-input": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "wxt": "^0.21.0"
+  }
+}

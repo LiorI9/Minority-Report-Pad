@@ -2,11 +2,15 @@
   "name": "minority-report-pad",
   "private": true,
   "type": "module",
-  "workspaces": ["packages/*", "apps/*"],
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
     "dev": "npm run dev -w @mrp/testbed",
     "build": "npm run build -w @mrp/gesture-engine && npm run build -w @mrp/testbed",
     "test": "npm test -w @mrp/gesture-engine",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build:extension": "npm run zip -w @mrp/extension"
   }
 }
