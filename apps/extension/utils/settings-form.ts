@@ -8,9 +8,11 @@ export async function bindSettingsForm(root: ParentNode): Promise<void> {
     const key = el.dataset.setting as keyof Settings;
     const out = root.querySelector<HTMLOutputElement>(`output[for="${el.id}"]`);
     if (el instanceof HTMLInputElement && el.type === 'checkbox') el.checked = Boolean(settings[key]);
+    else if (el instanceof HTMLInputElement && el.type === 'radio') el.checked = el.value === String(settings[key]);
     else el.value = String(settings[key]);
     if (out) out.value = el.value;
     el.addEventListener('input', async () => {
+      if (el instanceof HTMLInputElement && el.type === 'radio' && !el.checked) return;
       const current = await loadSettings();
       const value =
         el instanceof HTMLInputElement && el.type === 'checkbox' ? el.checked

@@ -5,9 +5,31 @@ export interface Settings {
   swapHandedness: boolean;
   gain: number;
   stableMs: number;
+  /** Scroll pixels per unit of hand travel. */
+  scrollGain: number;
+  naturalScroll: boolean;
+  /** Which tab a rightward swipe opens. */
+  swipeRight: 'next' | 'previous';
 }
 
-export const DEFAULT_SETTINGS: Settings = { dominant: 'Right', swapHandedness: true, gain: 3, stableMs: 150 };
+export const DEFAULT_SETTINGS: Settings = {
+  dominant: 'Right',
+  swapHandedness: true,
+  gain: 3,
+  stableMs: 150,
+  scrollGain: 2500,
+  naturalScroll: true,
+  swipeRight: 'next',
+};
+
+/** The subset of settings the gesture engine consumes. */
+export const engineOptions = (s: Settings) => ({
+  dominant: s.dominant,
+  gain: s.gain,
+  stableMs: s.stableMs,
+  scrollGain: s.scrollGain,
+  naturalScroll: s.naturalScroll,
+});
 
 /** One processed camera frame, as sent from the offscreen document. */
 export interface FrameMessage {

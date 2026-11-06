@@ -49,7 +49,7 @@ const frame = engine.update([{ landmarks, handedness }], performance.now());
 - **מצמד עם היסטרזיס:** יד ייחוס עם 4 אצבעות ומעלה = פעיל, עם אחת או פחות = מושהה, ובין לבין נשאר המצב הקודם. שחרור המצמד מסיים גרירה.
 - **תנוחות:** 4 ו-5 אצבעות = 5. תנוחה חדשה מתקבלת אחרי `stableMs`. בזמן מעבר הסמן קפוא.
 - **סמן:** מרכז כף יד התנועה (שורש + בסיסי האצבעות) יחסית למרכז כף יד הייחוס, דרך One Euro, כפול `gain`. ציר X הפוך כי הפריים לא מראתי.
-- **2 אצבעות:** תנועה מעבר ל-`scrollDeadzone` = גלילה טבעית; בלי תנועה = `rightClick` ביציאה מהתנוחה.
+- **2 אצבעות:** תנועה מעבר ל-`scrollDeadzone` = גלילה (טבעית כברירת מחדל, `naturalScroll`; עוצמה לפי `scrollGain`); בלי תנועה = `rightClick` ביציאה מהתנוחה.
 - **3 אצבעות:** תנועה אופקית של `swipeDistance` (0.08) תוך `swipeWindowMs` (300ms) = `swipe`, אחרת `dragStart`. זיהוי ההחלקה משתמש במיקום הגולמי.
 
 ### בדיקות
@@ -86,7 +86,20 @@ WXT + TypeScript, MV3 ([ADR-005](adr/005-wxt-typescript.md)).
 - **Offscreen → Background:** `frame` (מצמד, תנוחה, סמן, אירועים, נקודות ידיים מעוגלות, FPS, זמן זיהוי), `tracker-status`, `get-settings`.
 - **Background → Content:** `frame`, `disable`.
 - **Background ↔ Popup:** port בשם `popup` לפריימים ולמצב; `set-enabled`, `get-state`.
-- **הגדרות** ב-`chrome.storage.local`. ל-Offscreen יש רק `chrome.runtime`, ולכן הוא מקבל אותן דרך ה-Background.
+- **הגדרות** ב-`chrome.storage.local`. ל-Offscreen יש רק `chrome.runtime`, ולכן הוא מקבל אותן דרך ה-Background. שינוי נכנס לתוקף מיד, בלי הפעלה מחדש.
+
+### הגדרות (`Settings`)
+| הגדרה | ברירת מחדל | איפה | מי משתמש |
+|---|---|---|---|
+| `dominant` | ימין | פופאפ + הגדרות | מנוע |
+| `swapHandedness` | כן | הגדרות | Offscreen ([ADR-011](adr/011-handedness-swap.md)) |
+| `gain` — רגישות סמן | 3 | פופאפ + הגדרות | מנוע |
+| `stableMs` — ייצוב תנוחה | 150 | הגדרות | מנוע |
+| `scrollGain` — עוצמת גלילה | 2500 | הגדרות | מנוע |
+| `naturalScroll` — גלילה טבעית | כן | הגדרות | מנוע |
+| `swipeRight` — החלקה ימינה עוברת ל | הטאב הבא | הגדרות | Background |
+
+קיצור המקלדת משתנה ב-`chrome://extensions/shortcuts`. ספי המנוע האחרים (החלקה, deadzone, מצמד) קבועים בקוד.
 
 ### הזרקה
 - Content script מוצהר על `<all_urls>`. בטאבים שנפתחו לפני ההתקנה, ה-Background מזריק אותו פעם אחת דרך `chrome.scripting`. בדפים כמו `chrome://` ו-Web Store אי אפשר להזריק.
@@ -118,4 +131,3 @@ WXT + TypeScript, MV3 ([ADR-005](adr/005-wxt-typescript.md)).
 - החלפת התוויות ימין/שמאל ([ADR-011](adr/011-handedness-swap.md)).
 - רגישות הסמן (ברירת מחדל 3) ונראות הסמן מעל וידאו במסך מלא.
 - FPS וזמן זיהוי של התוסף ב-Mac אמיתי.
-- כיוון ה-swipe: ימינה = הטאב הבא. ייתכן שצריך להפוך.

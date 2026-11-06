@@ -1,5 +1,6 @@
 import type { ClutchState } from '@mrp/gesture-engine';
 import {
+  DEFAULT_SETTINGS,
   loadSettings,
   type ContentMessage,
   type FrameMessage,
@@ -108,7 +109,8 @@ export default defineBackground(() => {
     if (!current?.windowId) return;
     const tabs = await browser.tabs.query({ windowId: current.windowId });
     const i = tabs.findIndex((t) => t.id === current.id);
-    const next = tabs[(i + (direction === 'right' ? 1 : -1) + tabs.length) % tabs.length];
+    const forward = (direction === 'right') === (cachedSettings.swipeRight === 'next');
+    const next = tabs[(i + (forward ? 1 : -1) + tabs.length) % tabs.length];
     if (next?.id !== undefined) await browser.tabs.update(next.id, { active: true });
   }
 
@@ -143,7 +145,7 @@ export default defineBackground(() => {
   });
 
   // --- Settings -------------------------------------------------------------
-  let cachedSettings = { dominant: 'Right', swapHandedness: true, gain: 3, stableMs: 150 } as PopupState['settings'];
+  let cachedSettings: PopupState['settings'] = DEFAULT_SETTINGS;
   void loadSettings().then((s) => (cachedSettings = s));
   browser.storage.onChanged.addListener(async (changes) => {
     if (!changes.settings) return;

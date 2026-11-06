@@ -89,6 +89,17 @@ describe('GestureEngine poses', () => {
     expect(d.types()).not.toContain('rightClick');
   });
 
+  it('reverses scrolling when natural scrolling is off', () => {
+    const d = driver(new GestureEngine({ stableMs: 100, naturalScroll: false }));
+    d.step(OPEN, { frames: 5 });
+    d.step(TWO, { frames: 6 });
+    d.clear();
+    d.step(TWO, { dy: -0.01, frames: 10 }); // hand up
+    const scrolls = d.events.filter((e) => e.type === 'scroll');
+    expect(scrolls.length).toBeGreaterThan(0);
+    expect(scrolls.every((e) => e.type === 'scroll' && e.dy < 0)).toBe(true);
+  });
+
   it('turns a fast three-finger sideways move into a swipe', () => {
     const d = driver();
     d.step(OPEN, { frames: 5 });

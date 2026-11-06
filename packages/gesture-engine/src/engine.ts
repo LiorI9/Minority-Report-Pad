@@ -35,6 +35,8 @@ export interface EngineOptions {
   gain: number;
   /** Scroll pixels per unit of hand travel. */
   scrollGain: number;
+  /** Natural scrolling (content follows the hand, like a Mac trackpad). false = classic/reversed. */
+  naturalScroll: boolean;
   /** Hand travel needed before a 2-finger pose becomes a scroll instead of a right click. */
   scrollDeadzone: number;
   /** A 3-finger pose that travels `swipeDistance` within `swipeWindowMs` is a tab swipe, otherwise a drag. */
@@ -51,6 +53,7 @@ export const DEFAULT_OPTIONS: EngineOptions = {
   stableMs: 150,
   gain: 3,
   scrollGain: 2500,
+  naturalScroll: true,
   scrollDeadzone: 0.02,
   swipeWindowMs: 300,
   swipeDistance: 0.08,
@@ -247,7 +250,8 @@ export class GestureEngine {
         if (!this.scrolled && Math.hypot(this.travel.x, this.travel.y) >= o.scrollDeadzone) this.scrolled = true;
         // Natural scrolling, like a Mac trackpad: content follows the hand.
         if (this.scrolled && (dx !== 0 || dy !== 0)) {
-          events.push({ type: 'scroll', dx: -dx * o.scrollGain, dy: -dy * o.scrollGain });
+          const sign = o.naturalScroll ? -1 : 1;
+          events.push({ type: 'scroll', dx: sign * dx * o.scrollGain, dy: sign * dy * o.scrollGain });
         }
         break;
       }

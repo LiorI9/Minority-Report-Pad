@@ -1,6 +1,6 @@
 import { FilesetResolver, HandLandmarker, type HandLandmarkerResult } from '@mediapipe/tasks-vision';
 import { GestureEngine, type EngineFrame, type HandInput, type Handedness } from '@mrp/gesture-engine';
-import type { FrameMessage, Message, Settings, TrackerStatus } from '@/utils/messages';
+import { engineOptions, type FrameMessage, type Message, type Settings, type TrackerStatus } from '@/utils/messages';
 
 /**
  * Offscreen document: camera + MediaPipe + GestureEngine. Survives tab switches.
@@ -38,7 +38,7 @@ async function createLandmarker(): Promise<HandLandmarker> {
 async function start(): Promise<void> {
   void setStatus('starting');
   settings = (await browser.runtime.sendMessage({ type: 'get-settings' } satisfies Message)) as Settings;
-  engine = new GestureEngine({ dominant: settings.dominant, gain: settings.gain, stableMs: settings.stableMs });
+  engine = new GestureEngine(engineOptions(settings));
   try {
     video.srcObject = await navigator.mediaDevices.getUserMedia({
       video: { width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -120,7 +120,7 @@ function tickFps(now: number): void {
 browser.runtime.onMessage.addListener((msg: Message) => {
   if (msg.type !== 'settings') return;
   settings = msg.settings;
-  engine?.setOptions({ dominant: settings.dominant, gain: settings.gain, stableMs: settings.stableMs });
+  engine?.setOptions(engineOptions(settings));
 });
 
 void start();

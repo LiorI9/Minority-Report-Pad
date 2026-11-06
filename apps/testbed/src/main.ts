@@ -27,6 +27,8 @@ const ui = {
   gain: $<HTMLInputElement>('gain'),
   stable: $<HTMLInputElement>('stable'),
   control: $<HTMLInputElement>('control'),
+  scrollGain: $<HTMLInputElement>('scroll-gain'),
+  natural: $<HTMLInputElement>('natural'),
 };
 
 const CONNECTIONS: [number, number][] = [
@@ -84,11 +86,14 @@ function applySettings(): void {
     dominant: ui.dominant.value as Handedness,
     gain: Number(ui.gain.value),
     stableMs: Number(ui.stable.value),
+    scrollGain: Number(ui.scrollGain.value),
+    naturalScroll: ui.natural.checked,
   });
+  $('scroll-out').textContent = ui.scrollGain.value;
   $('gain-out').textContent = ui.gain.value;
   $('stable-out').textContent = ui.stable.value;
 }
-[ui.dominant, ui.gain, ui.stable].forEach((el) => el.addEventListener('input', applySettings));
+[ui.dominant, ui.gain, ui.stable, ui.scrollGain, ui.natural].forEach((el) => el.addEventListener('input', applySettings));
 applySettings();
 
 // --- Camera + model ---------------------------------------------------------
