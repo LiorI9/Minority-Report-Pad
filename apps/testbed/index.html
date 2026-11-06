@@ -11,21 +11,106 @@
       <h1>Minority Report Pad <span>Test Bed</span></h1>
       <button id="start">הפעל מצלמה</button>
     </header>
-    <main>
+
+    <main class="top">
       <section class="stage">
         <video id="video" playsinline muted></video>
         <canvas id="overlay"></canvas>
+        <div id="clutch-badge" class="badge">אין ידיים</div>
         <p id="status" class="status">לחץ "הפעל מצלמה" כדי להתחיל</p>
       </section>
+
       <section class="panel">
         <h2>מעבדת מחוות</h2>
-        <dl id="hands"></dl>
         <dl>
+          <dt>מצמד</dt><dd id="clutch">–</dd>
+          <dt>אצבעות (גולמי)</dt><dd id="raw">–</dd>
+          <dt>תנוחה</dt><dd id="pose" class="big">–</dd>
+          <dt>יד תנועה</dt><dd id="motion-hand">–</dd>
           <dt>FPS</dt><dd id="fps">–</dd>
           <dt>זמן זיהוי</dt><dd id="latency">–</dd>
         </dl>
+        <h3>כיול</h3>
+        <label>יד דומיננטית (מזיזה את הסמן)
+          <select id="dominant">
+            <option value="Right">ימין</option>
+            <option value="Left">שמאל</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="swap" checked /> החלף תוויות ימין/שמאל של המודל</label>
+        <label>רגישות סמן <output id="gain-out"></output>
+          <input type="range" id="gain" min="1" max="8" step="0.5" value="3" />
+        </label>
+        <label>ייצוב תנוחה (ms) <output id="stable-out"></output>
+          <input type="range" id="stable" min="0" max="400" step="10" value="150" />
+        </label>
+        <label><input type="checkbox" id="control" checked /> שליטה בדף (סמן + אירועים)</label>
       </section>
     </main>
+
+    <section class="targets">
+      <h2>אזורי מטרה</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>לחיצה (אצבע 1)</h3>
+          <div class="buttons">
+            <button class="t-btn small" data-name="קטן">קטן <b>0</b></button>
+            <button class="t-btn medium" data-name="בינוני">בינוני <b>0</b></button>
+            <button class="t-btn large" data-name="גדול">גדול <b>0</b></button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>לחיצה ימנית (2 אצבעות, בלי תנועה)</h3>
+          <div id="ctx-zone" class="zone">לחיצה ימנית כאן · <b>0</b></div>
+        </article>
+
+        <article class="card">
+          <h3>גלילה (2 אצבעות + תנועה)</h3>
+          <ul id="scroll-list" class="scroll-list"></ul>
+        </article>
+
+        <article class="card">
+          <h3>סליידר (גרירה, 3 אצבעות)</h3>
+          <div id="slider" class="slider"><div class="fill"></div><div class="thumb"></div></div>
+          <p class="hint">ערך: <b id="slider-value">50</b></p>
+        </article>
+
+        <article class="card">
+          <h3>גרירת עכבר (3 אצבעות)</h3>
+          <div id="drag-area" class="drag-area"><div id="drag-box" class="drag-box">גרור</div></div>
+        </article>
+
+        <article class="card">
+          <h3>HTML5 Drag &amp; Drop</h3>
+          <div class="dnd">
+            <div class="dnd-card" draggable="true">כרטיס א</div>
+            <div class="dnd-card" draggable="true">כרטיס ב</div>
+            <div id="dropzone" class="dropzone">שחרר כאן</div>
+          </div>
+          <p class="hint">צפוי לא לעבוד עם אירועים סינתטיים — ייפתר בגרסה 0.2</p>
+        </article>
+
+        <article class="card">
+          <h3>בחירת טקסט</h3>
+          <p class="selectable">אם לא הייתה אמונה צסק״א לא הייתה אוכלת אותה. נסו לבחור את הטקסט הזה בגרירה.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="log">
+      <div class="log-head">
+        <h2>לוג אירועים</h2>
+        <button id="clear-log" class="ghost">נקה</button>
+      </div>
+      <table>
+        <thead><tr><th>זמן</th><th>מקור</th><th>אירוע</th><th>מטרה</th><th>isTrusted</th></tr></thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </section>
+
+    <div id="cursor" class="cursor" hidden></div>
+    <div id="toast" class="toast" hidden></div>
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
