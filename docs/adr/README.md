@@ -17,6 +17,8 @@
 | [011](011-handedness-swap.md) | החלפת תוויות ימין/שמאל של MediaPipe |
 | [012](012-activation.md) | הפעלה — פופאפ + קיצור מקלדת + תג |
 | [013](013-mediapipe-packaging.md) | אריזת MediaPipe בתוך התוסף |
+| [014](014-two-hand-zoom.md) | זום בשתי ידיים — V ביד הייחוס + מרחק |
+| [015](015-hands-overlay.md) | הצגת הידיים כשלד שקוף על הדף |
 
 ## תבנית
 ```markdown

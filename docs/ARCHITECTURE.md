@@ -39,10 +39,10 @@
 ```ts
 const engine = new GestureEngine({ dominant: 'Right', stableMs: 150, gain: 3 });
 const frame = engine.update([{ landmarks, handedness }], performance.now());
-// frame: { clutch, rawFingers, pose, cursor, dragging, motionIndex, referenceIndex, events }
+// frame: { clutch, rawFingers, pose, cursor, dragging, zooming, motionIndex, referenceIndex, events }
 ```
 
-אירועים: `clutch`, `pose`, `click`, `rightClick`, `scroll {dx, dy}`, `dragStart`, `dragMove`, `dragEnd`, `swipe {direction}`.
+אירועים: `clutch`, `pose`, `click`, `rightClick`, `scroll {dx, dy}`, `dragStart`, `dragMove`, `dragEnd`, `swipe {direction}`, `zoomStart`, `zoom {factor}`, `zoomEnd`.
 
 ### התנהגות
 - **תפקידי ידיים:** היד הדומיננטית = יד תנועה, השנייה = יד ייחוס.
@@ -51,9 +51,16 @@ const frame = engine.update([{ landmarks, handedness }], performance.now());
 - **סמן:** מרכז כף יד התנועה (שורש + בסיסי האצבעות) יחסית למרכז כף יד הייחוס, דרך One Euro, כפול `gain`. ציר X הפוך כי הפריים לא מראתי.
 - **2 אצבעות:** תנועה מעבר ל-`scrollDeadzone` = גלילה (טבעית כברירת מחדל, `naturalScroll`; עוצמה לפי `scrollGain`); בלי תנועה = `rightClick` ביציאה מהתנוחה.
 - **3 אצבעות:** תנועה אופקית של `swipeDistance` (0.08) תוך `swipeWindowMs` (300ms) = `swipe`, אחרת `dragStart`. זיהוי ההחלקה משתמש במיקום הגולמי.
+- **זום — V ביד הייחוס** ([ADR-014](adr/014-two-hand-zoom.md)):
+  - יד ייחוס עם **בדיוק 2 אצבעות**, יציבה `stableMs`, בזמן שהמצמד פעיל → מצב זום. 2 אצבעות נמצאות ממילא באזור ההיסטרזיס של המצמד, ולכן המצמד נשאר פעיל.
+  - בכניסה: `zoomStart`, ונשמר המרחק ההתחלתי `d0` בין מרכזי כפות הידיים. גרירה פעילה מסתיימת.
+  - בכל פריים: `zoom { factor = d / d0 }` (מוחלק ב-One Euro), רק כשהשינוי מעל `zoomDeadzone`. הרחקת הידיים מגדילה, קירובן מקטין.
+  - במצב זום יד התנועה לא מזיזה סמן ולא לוחצת.
+  - ביציאה (V נעלם, או שהמצמד נסגר): `zoomEnd`.
+  - הייצוב מונע זום בטעות כשסוגרים את יד הייחוס לאגרוף, כי בדרך עוברים דרך 2 אצבעות.
 
 ### בדיקות
-15 בדיקות Vitest על ידיים סינתטיות (`test/hands.ts`): ספירת אצבעות, מצמד, ייצוב, כיוון סמן, ימנית מול גלילה, החלקה מול גרירה, שחרור מצמד באמצע גרירה.
+בדיקות Vitest על ידיים סינתטיות (`test/hands.ts`): ספירת אצבעות, מצמד, ייצוב, כיוון סמן, ימנית מול גלילה, גלילה הפוכה, החלקה מול גרירה, שחרור מצמד באמצע גרירה, וזום (כניסה, כיוון, יציאה, ומעבר חולף דרך V בדרך לאגרוף שלא מפעיל זום).
 
 ## 4. דף הבדיקות — `apps/testbed`
 | קובץ | תפקיד |
@@ -83,7 +90,7 @@ WXT + TypeScript, MV3 ([ADR-005](adr/005-wxt-typescript.md)).
 - **כיבוי** סוגר את ה-Offscreen document, וזה מכבה את המצלמה.
 
 ### הודעות (`utils/messages.ts`)
-- **Offscreen → Background:** `frame` (מצמד, תנוחה, סמן, אירועים, נקודות ידיים מעוגלות, FPS, זמן זיהוי), `tracker-status`, `get-settings`.
+- **Offscreen → Background:** `frame` (מצמד, תנוחה, סמן, זום, אירועים, נקודות ידיים מעוגלות, יחס הפריים של המצלמה, FPS, זמן זיהוי), `tracker-status`, `get-settings`.
 - **Background → Content:** `frame`, `disable`.
 - **Background ↔ Popup:** port בשם `popup` לפריימים ולמצב; `set-enabled`, `get-state`.
 - **הגדרות** ב-`chrome.storage.local`. ל-Offscreen יש רק `chrome.runtime`, ולכן הוא מקבל אותן דרך ה-Background. שינוי נכנס לתוקף מיד, בלי הפעלה מחדש.
@@ -98,8 +105,20 @@ WXT + TypeScript, MV3 ([ADR-005](adr/005-wxt-typescript.md)).
 | `scrollGain` — עוצמת גלילה | 2500 | הגדרות | מנוע |
 | `naturalScroll` — גלילה טבעית | כן | הגדרות | מנוע |
 | `swipeRight` — החלקה ימינה עוברת ל | הטאב הבא | הגדרות | Background |
+| `showHands` — הצג ידיים על הדף | לא | פופאפ + הגדרות | Content |
 
 קיצור המקלדת משתנה ב-`chrome://extensions/shortcuts`. ספי המנוע האחרים (החלקה, deadzone, מצמד) קבועים בקוד.
+
+### זום ([ADR-014](adr/014-two-hand-zoom.md))
+- **Background:** ב-`zoomStart` קורא את זום הטאב הנוכחי (`chrome.tabs.getZoom`) ושומר אותו כ-`z0`. בכל `zoom` קובע `chrome.tabs.setZoom(z0 × factor)`, בטווח 25%–500%. קריאה נשלחת רק כשהשינוי מעל 2%, וכל עוד אין קריאה קודמת שעוד לא הסתיימה.
+- **Content:** הסמן עובר למצב `zoom` (זכוכית מגדלת) ומציג את אחוז הזום. ה-Background שולח את האחוז בפריים.
+- **Test Bed:** אין `chrome.tabs`, ולכן הזום מדומה ב-CSS `zoom` על התוכן, עם אותו חישוב `z0 × factor`.
+
+### הצגת ידיים ([ADR-015](adr/015-hands-overlay.md))
+- **Content:** canvas שקוף על כל ה-viewport, בתוך ה-Shadow DOM, עם `pointer-events: none`. מצייר את השלד מנקודות הידיים שכבר נשלחות בכל פריים. צהוב = יד תנועה, כחול = יד ייחוס, שקיפות 50%.
+- **מיפוי:** הציור מראתי (x → 1−x), כדי שהמציג יראה את הידיים כמו במראה. הפריים מותאם לגובה המסך לפי יחס המצלמה (`aspect`) וממורכז, בלי עיוות.
+- **ההגדרה `showHands`:** מתג בפופאפ ובהגדרות, כבוי כברירת מחדל. כשהוא כבוי לא מצויר כלום.
+- **הקוד:** `HandsOverlay` בחבילה `packages/page-input`, לצד הסמן.
 
 ### הזרקה
 - Content script מוצהר על `<all_urls>`. בטאבים שנפתחו לפני ההתקנה, ה-Background מזריק אותו פעם אחת דרך `chrome.scripting`. בדפים כמו `chrome://` ו-Web Store אי אפשר להזריק.
