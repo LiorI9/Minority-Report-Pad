@@ -33,6 +33,9 @@ jobs:
         with:
           name: minority-report-pad-extension
           path: apps/extension/.output/*-chrome.zip
+          # WXT writes to .output/, which upload-artifact skips by default.
+          include-hidden-files: true
+          if-no-files-found: error
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/testbed/dist

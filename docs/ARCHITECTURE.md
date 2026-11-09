@@ -123,6 +123,7 @@ WXT + TypeScript, MV3 ([ADR-005](adr/005-wxt-typescript.md)).
 - `scrollBy` מייצר אירועי `scroll` עם `isTrusted: true`. הגלילה לא צריכה debugger.
 - HTML5 Drag & Drop לא מגיב לאירועים סינתטיים, כצפוי.
 - לוג שמוסיף שורה ב-`mousedown` וגדל כלפי מעלה מזיז כפתורים באמצע לחיצה → פאנל עם תוכן דינמי חייב גובה קבוע.
+- `upload-artifact` מדלג על תיקיות נסתרות (כמו `.output/` של WXT) → צריך `include-hidden-files: true`, ו-`if-no-files-found: error` כדי שזה ייכשל בקול ולא בשקט.
 - `display` שמוגדר ב-CSS דורס את המאפיין `hidden` → צריך כלל `[hidden] { display: none }` מפורש.
 - MediaPipe בוחר בזמן ריצה בין WASM עם SIMD לבלי SIMD. ב-Chromium של סביבת הבדיקה הוא בחר בלי SIMD, ולכן אורזים את שניהם.
 - ב-Chromium בלי GPU, על 4 ליבות: ~290ms לזיהוי, כ-4 FPS. זה חסם CPU, לא האטת טיימרים. במכשיר עם GPU צפוי מהר בהרבה, למדוד.
