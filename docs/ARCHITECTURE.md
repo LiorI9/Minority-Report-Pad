@@ -122,7 +122,8 @@ WXT + TypeScript, MV3 ([ADR-005](adr/005-wxt-typescript.md)).
 
 ### הזרקה
 - Content script מוצהר על `<all_urls>`. בטאבים שנפתחו לפני ההתקנה, ה-Background מזריק אותו פעם אחת דרך `chrome.scripting`. בדפים כמו `chrome://` ו-Web Store אי אפשר להזריק.
-- הרשאות: `offscreen`, `storage`, `scripting`, `tabs`, `host_permissions: <all_urls>`.
+- הרשאות: `offscreen`, `storage`, `scripting`, `host_permissions: <all_urls>`. `tabs` הוסרה ([ADR-017](adr/017-store-publishing.md)): מזהי טאבים, אינדקסים, `getZoom` ו-`setZoom` לא צריכים אותה.
+- אייקונים: `public/icon/{16,32,48,128}.png`, שנוצרים מ-`docs/store/icon.svg`.
 
 ### MediaPipe בתוך התוסף ([ADR-013](adr/013-mediapipe-packaging.md))
 - `scripts/fetch-assets.mjs` מעתיק את ה-WASM (עם SIMD ובלי) ומוריד את המודל ל-`public/mediapipe/` לפני כל build.
@@ -132,6 +133,8 @@ WXT + TypeScript, MV3 ([ADR-005](adr/005-wxt-typescript.md)).
 - `chrome.debugger` כהרשאה אופציונלית, לפי אתר ([ADR-003](adr/003-hybrid-input-injection.md)).
 
 ## 6. בנייה ופריסה
+- **מדיניות פרטיות:** `apps/testbed/public/privacy.html` → https://liori9.github.io/Minority-Report-Pad/privacy.html
+- **חומרי חנות:** `docs/store/` ([ADR-017](adr/017-store-publishing.md)).
 - `npm install`, `npm run dev`, `npm test`, `npm run build` משורש הריפו (npm workspaces).
 - `npm run build:extension` → `apps/extension/.output/minority-report-pad-<version>-chrome.zip`.
 - GitHub Actions: כל push ל-`main` מריץ בדיקות, typecheck ו-build, מעלה את ZIP התוסף כ-artifact, ומפרסם את `apps/testbed/dist` ל-GitHub Pages ([ADR-007](adr/007-github-pages-hosting.md)).

@@ -5,6 +5,8 @@
 - 📄 מוצר: [docs/PRD.md](docs/PRD.md)
 - 🏗️ ארכיטקטורה: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - 🧭 החלטות: [docs/adr/](docs/adr/)
+- 🔒 מדיניות פרטיות: https://liori9.github.io/Minority-Report-Pad/privacy.html
+- 🏪 חומרי חנות: [docs/store/](docs/store/README.md)
 - 🧪 Test Bed: https://liori9.github.io/Minority-Report-Pad/
 
 ## מבנה

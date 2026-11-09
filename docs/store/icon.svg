@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Minority Report Pad icon: an open hand (four fingers) above the cursor ring. -->
+  <rect width="128" height="128" rx="28" fill="#131a22"/>
+  <g stroke="#f5c518" stroke-linecap="round" fill="none">
+    <path d="M38 66V34M54 62V24M70 62V24M86 66V34" stroke-width="11"/>
+    <circle cx="62" cy="90" r="17" stroke-width="10"/>
+  </g>
+  <circle cx="62" cy="90" r="5" fill="#58a6ff"/>
+</svg>
