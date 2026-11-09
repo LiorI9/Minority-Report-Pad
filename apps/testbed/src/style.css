@@ -81,6 +81,7 @@ output { color: var(--accent); }
 .swatch.scroll { border-color: #58a6ff; border-radius: 6px; }
 .swatch.grab { border-color: #3fb950; }
 .swatch.idle { border-color: #6e7681; border-style: dashed; }
+.swatch.zoom { border-color: #d2a8ff; }
 
 /* --- Full-screen mode ------------------------------------------------------ */
 body.fs { overflow: hidden; }

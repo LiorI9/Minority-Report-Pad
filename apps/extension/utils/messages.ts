@@ -10,6 +10,8 @@ export interface Settings {
   naturalScroll: boolean;
   /** Which tab a rightward swipe opens. */
   swipeRight: 'next' | 'previous';
+  /** Draw translucent hand skeletons over the page (ADR-015). */
+  showHands: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -20,6 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
   scrollGain: 2500,
   naturalScroll: true,
   swipeRight: 'next',
+  showHands: false,
 };
 
 /** The subset of settings the gesture engine consumes. */
@@ -39,9 +42,12 @@ export interface FrameMessage {
   rawFingers: number | null;
   cursor: { x: number; y: number };
   dragging: boolean;
+  zooming: boolean;
   events: GestureEvent[];
   /** Simplified landmarks for the popup preview: [x, y] per point, per hand; and role per hand. */
   hands: { points: [number, number][]; role: 'motion' | 'reference' | 'other' }[];
+  /** Camera frame width / height, to draw hands without distortion. */
+  aspect: number;
   fps: number;
   /** MediaPipe detection time for this frame, ms. */
   detectMs: number;
@@ -65,7 +71,8 @@ export interface PopupState {
 }
 
 /** Messages to the content script. */
-export type ContentMessage = { type: 'frame'; frame: FrameMessage } | { type: 'disable' } | { type: 'ping' };
+/** `zoomPercent` is the tab's browser zoom while in zoom mode. */
+export type ContentMessage = { type: 'frame'; frame: FrameMessage; zoomPercent?: number } | { type: 'disable' } | { type: 'ping' };
 
 export async function loadSettings(): Promise<Settings> {
   const { settings } = await browser.storage.local.get('settings');

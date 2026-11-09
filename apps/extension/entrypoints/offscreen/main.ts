@@ -98,6 +98,8 @@ function toMessage(hands: HandInput[], f: EngineFrame, detectMs: number): FrameM
     rawFingers: f.rawFingers,
     cursor: f.cursor,
     dragging: f.dragging,
+    zooming: f.zooming,
+    aspect: video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9,
     events: f.events,
     fps,
     detectMs,

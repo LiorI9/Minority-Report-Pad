@@ -8,6 +8,7 @@ export const FIST: Open = {};
 export const ONE: Open = { index: true };
 export const TWO: Open = { index: true, middle: true };
 export const THREE: Open = { index: true, middle: true, ring: true };
+export const V: Open = { index: true, middle: true };
 
 /**
  * Builds a synthetic upright hand (palm facing camera, y grows downward),

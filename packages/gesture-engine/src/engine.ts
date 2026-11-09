@@ -24,7 +24,11 @@ export type GestureEvent =
   | { type: 'dragStart' }
   | { type: 'dragMove' }
   | { type: 'dragEnd' }
-  | { type: 'swipe'; direction: 'left' | 'right' };
+  | { type: 'swipe'; direction: 'left' | 'right' }
+  | { type: 'zoomStart' }
+  /** Zoom relative to when zoom mode started: hands apart > 1, closer < 1. */
+  | { type: 'zoom'; factor: number }
+  | { type: 'zoomEnd' };
 
 export interface EngineOptions {
   /** The hand that moves the cursor. The other hand is the reference (anchor + clutch). */
@@ -46,6 +50,10 @@ export interface EngineOptions {
   clutchOpenMin: number;
   /** Reference hand with at most this many fingers pauses the clutch. */
   clutchClosedMax: number;
+  /** Reference hand with exactly this many fingers (V) enters zoom mode. */
+  zoomFingers: number;
+  /** Minimum change in zoom factor before a new zoom event is emitted. */
+  zoomDeadzone: number;
 }
 
 export const DEFAULT_OPTIONS: EngineOptions = {
@@ -59,6 +67,8 @@ export const DEFAULT_OPTIONS: EngineOptions = {
   swipeDistance: 0.08,
   clutchOpenMin: 4,
   clutchClosedMax: 1,
+  zoomFingers: 2,
+  zoomDeadzone: 0.02,
 };
 
 export interface Point {
@@ -75,6 +85,8 @@ export interface EngineFrame {
   /** Cursor position in normalized screen coordinates (0..1). */
   cursor: Point;
   dragging: boolean;
+  /** Two-hand zoom mode (reference hand shows V). */
+  zooming: boolean;
   /** Indices into the input array, for visualization. */
   motionIndex: number | null;
   referenceIndex: number | null;
@@ -125,6 +137,13 @@ export class GestureEngine {
   private dragging = false;
   private swiped = false;
 
+  // Two-hand zoom.
+  private zooming = false;
+  private refVSince: number | null = null;
+  private zoomD0 = 0;
+  private lastZoomFactor = 1;
+  private readonly fz = new OneEuroFilter();
+
   constructor(options: Partial<EngineOptions> = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
   }
@@ -152,6 +171,7 @@ export class GestureEngine {
       pose: this.pose,
       cursor: { ...this.cursor },
       dragging: this.dragging,
+      zooming: this.zooming,
       motionIndex,
       referenceIndex,
       events,
@@ -190,6 +210,9 @@ export class GestureEngine {
 
   private deactivate(events: GestureEvent[]): void {
     if (this.dragging) events.push({ type: 'dragEnd' });
+    if (this.zooming) events.push({ type: 'zoomEnd' });
+    this.zooming = false;
+    this.refVSince = null;
     this.dragging = false;
     this.pose = null;
     this.candidate = null;
@@ -206,6 +229,8 @@ export class GestureEngine {
     tMs: number,
     events: GestureEvent[],
   ): void {
+    if (this.updateZoom(motion, reference, tMs, events)) return;
+
     // Stabilize the pose.
     const rawPose = toPose(rawFingers);
     if (rawPose !== this.candidate) {
@@ -236,6 +261,49 @@ export class GestureEngine {
     // Swipes are fast, so they use the unfiltered position to avoid smoothing lag.
     const rawDx = -(raw.x - prevRaw.x);
     this.applyPose(dx, dy, rawDx, tMs, events);
+  }
+
+  /**
+   * Reference hand V (stable for stableMs) = zoom mode: the distance between the palms,
+   * relative to the distance when the mode started, is the zoom factor.
+   * Returns true while zooming, so the motion hand does nothing else.
+   */
+  private updateZoom(motion: HandInput, reference: HandInput, tMs: number, events: GestureEvent[]): boolean {
+    const o = this.options;
+    const isV = countFingers(reference.landmarks) === o.zoomFingers;
+    if (!isV) this.refVSince = null;
+    else if (this.refVSince === null) this.refVSince = tMs;
+    const want = this.refVSince !== null && tMs - this.refVSince >= o.stableMs;
+
+    const m = palmCenter(motion.landmarks);
+    const r = palmCenter(reference.landmarks);
+    const d = Math.hypot(m.x - r.x, m.y - r.y);
+
+    if (want && !this.zooming) {
+      if (this.dragging) events.push({ type: 'dragEnd' });
+      this.dragging = false;
+      this.zooming = true;
+      this.zoomD0 = Math.max(d, 1e-3);
+      this.lastZoomFactor = 1;
+      this.fz.reset();
+      events.push({ type: 'zoomStart' });
+    } else if (!want && this.zooming) {
+      this.zooming = false;
+      events.push({ type: 'zoomEnd' });
+      // Resume cursor tracking from here, without a jump.
+      this.lastRel = null;
+      this.lastRawRel = null;
+      this.fx.reset();
+      this.fy.reset();
+    }
+    if (!this.zooming) return false;
+
+    const factor = this.fz.filter(d / this.zoomD0, tMs);
+    if (Math.abs(factor - this.lastZoomFactor) >= o.zoomDeadzone) {
+      this.lastZoomFactor = factor;
+      events.push({ type: 'zoom', factor });
+    }
+    return true;
   }
 
   private applyPose(dx: number, dy: number, rawDx: number, tMs: number, events: GestureEvent[]): void {

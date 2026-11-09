@@ -1,5 +1,5 @@
-import { SyntheticInput, mountCursor, type CursorMode } from '@mrp/page-input';
-import type { ContentMessage, FrameMessage } from '@/utils/messages';
+import { HandsOverlay, SyntheticInput, mountCursor, type CursorMode } from '@mrp/page-input';
+import { loadSettings, type ContentMessage, type FrameMessage } from '@/utils/messages';
 
 const MODE_BY_POSE: Record<number, CursorMode> = { 0: 'idle', 1: 'click', 2: 'scroll', 3: 'grab', 5: 'move' };
 /** Hide the cursor if frames stop arriving (tab switched, extension off, tracker stalled). */
@@ -18,20 +18,29 @@ export default defineContentScript({
     host.style.cssText = 'all: initial; position: fixed; top: 0; left: 0; width: 0; height: 0; pointer-events: none;';
     const shadow = host.attachShadow({ mode: 'closed' });
     document.documentElement.append(host);
+    const overlay = new HandsOverlay(shadow); // appended first, so the cursor draws above it
     const input = new SyntheticInput(mountCursor(shadow));
+    const applySettings = () => loadSettings().then((s) => overlay.setEnabled(s.showHands));
+    void applySettings();
+    browser.storage.onChanged.addListener((changes) => {
+      if (changes.settings) void applySettings();
+    });
 
     let staleTimer: number | undefined;
     const hide = () => {
       input.dragEnd();
       input.setVisible(false);
+      overlay.clear();
     };
 
-    const onFrame = (frame: FrameMessage) => {
+    const onFrame = (frame: FrameMessage, zoomPercent?: number) => {
       clearTimeout(staleTimer);
       staleTimer = window.setTimeout(hide, STALE_MS);
 
       input.setVisible(frame.clutch === 'active');
-      input.setMode(frame.pose === null ? 'move' : (MODE_BY_POSE[frame.pose] ?? 'move'));
+      input.setMode(frame.zooming ? 'zoom' : frame.pose === null ? 'move' : (MODE_BY_POSE[frame.pose] ?? 'move'));
+      input.setLabel(frame.zooming && zoomPercent !== undefined ? `${zoomPercent}%` : '');
+      overlay.draw(frame.hands, frame.aspect);
       input.move(frame.cursor.x * window.innerWidth, frame.cursor.y * window.innerHeight);
 
       for (const e of frame.events) {
@@ -48,7 +57,7 @@ export default defineContentScript({
     };
 
     browser.runtime.onMessage.addListener((msg: ContentMessage) => {
-      if (msg.type === 'frame') onFrame(msg.frame);
+      if (msg.type === 'frame') onFrame(msg.frame, msg.zoomPercent);
       else if (msg.type === 'disable') hide();
       // 'ping' needs no handling: a successful sendMessage is the answer.
     });

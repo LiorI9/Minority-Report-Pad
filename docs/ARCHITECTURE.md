@@ -8,7 +8,7 @@
 | חבילה | תפקיד | סטטוס |
 |---|---|---|
 | `packages/gesture-engine` | TypeScript טהור, בלי DOM ובלי Chrome: landmarks → מצמד, תנוחה, סמן, אירועים | ✅ |
-| `packages/page-input` | `SyntheticInput` + `mountCursor`: סמן וירטואלי לפי תנוחה והזרקת אירועים לדף | ✅ |
+| `packages/page-input` | `SyntheticInput` + `mountCursor` + `HandsOverlay`: סמן וירטואלי לפי תנוחה (כולל זום ותווית), הזרקת אירועים, ושלד ידיים שקוף | ✅ |
 | `apps/testbed` | אפליקציית Vite: מצלמה, MediaPipe, אזורי מטרה, לוג | ✅ |
 | `apps/extension` | תוסף WXT (MV3): Offscreen, Service worker, Content script, Popup, Options | ✅ שלד מקצה לקצה |
 
@@ -135,6 +135,7 @@ WXT + TypeScript, MV3 ([ADR-005](adr/005-wxt-typescript.md)).
 - `npm install`, `npm run dev`, `npm test`, `npm run build` משורש הריפו (npm workspaces).
 - `npm run build:extension` → `apps/extension/.output/minority-report-pad-<version>-chrome.zip`.
 - GitHub Actions: כל push ל-`main` מריץ בדיקות, typecheck ו-build, מעלה את ZIP התוסף כ-artifact, ומפרסם את `apps/testbed/dist` ל-GitHub Pages ([ADR-007](adr/007-github-pages-hosting.md)).
+- **בדיקת מקצה לקצה של זום והצגת ידיים** (Playwright, התוסף טעון): `zoomStart` ואחריו `zoom 1.5` → `chrome.tabs.getZoom` = 1.5, ואחרי `zoom 0.5` → 0.5. הסמן מציג 150%, והשלד מצויר מראתי וצבוע לפי תפקיד.
 - **בדיקת מקצה לקצה של התוסף** (ידנית, Playwright): Chromium עם התוסף ומצלמה מזויפת (`--use-fake-device-for-media-stream`). נבדק: עליית ה-Offscreen ומעבר לסטטוס running, תג, פריים סינתטי שעובר דרך ה-Background ל-Content ולוחץ על כפתור, swipe שמחליף טאב, וכיבוי שסוגר את ה-Offscreen.
 
 ## 7. ממצאים

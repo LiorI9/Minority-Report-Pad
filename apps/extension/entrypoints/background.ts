@@ -21,6 +21,12 @@ export default defineBackground(() => {
   const popupPorts = new Set<Browser.runtime.Port>();
   const injectAttempted = new Set<number>();
   let activeTabId: number | undefined;
+  // Two-hand zoom (ADR-014): browser zoom relative to the zoom when the gesture started.
+  let zoomBase: number | null = null;
+  let zoomCurrent = 1;
+  let zoomInFlight = false;
+  const ZOOM_MIN = 0.25;
+  const ZOOM_MAX = 5;
 
   const OFFSCREEN_URL = browser.runtime.getURL('/offscreen.html');
 
@@ -114,6 +120,32 @@ export default defineBackground(() => {
     if (next?.id !== undefined) await browser.tabs.update(next.id, { active: true });
   }
 
+  // --- Zoom -----------------------------------------------------------------
+  async function startZoom(): Promise<void> {
+    if (activeTabId === undefined) return;
+    try {
+      zoomCurrent = await browser.tabs.getZoom(activeTabId);
+    } catch {
+      zoomCurrent = 1;
+    }
+    zoomBase = zoomCurrent;
+  }
+
+  async function applyZoom(factor: number): Promise<void> {
+    if (zoomBase === null || activeTabId === undefined || zoomInFlight) return;
+    const target = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomBase * factor));
+    if (Math.abs(target - zoomCurrent) / zoomCurrent < 0.02) return;
+    zoomInFlight = true;
+    try {
+      await browser.tabs.setZoom(activeTabId, target);
+      zoomCurrent = target;
+    } catch {
+      // Some pages (chrome://, Web Store) cannot be zoomed by extensions.
+    } finally {
+      zoomInFlight = false;
+    }
+  }
+
   // --- Frames ---------------------------------------------------------------
   function onFrame(frame: FrameMessage): void {
     if (!enabled) return;
@@ -125,8 +157,14 @@ export default defineBackground(() => {
       lastClutch = frame.clutch;
       updateBadge();
     }
-    for (const e of frame.events) if (e.type === 'swipe') void switchTab(e.direction);
-    if (activeTabId !== undefined) void sendToTab(activeTabId, { type: 'frame', frame });
+    for (const e of frame.events) {
+      if (e.type === 'swipe') void switchTab(e.direction);
+      else if (e.type === 'zoomStart') void startZoom();
+      else if (e.type === 'zoom') void applyZoom(e.factor);
+      else if (e.type === 'zoomEnd') zoomBase = null;
+    }
+    const zoomPercent = frame.zooming ? Math.round(zoomCurrent * 100) : undefined;
+    if (activeTabId !== undefined) void sendToTab(activeTabId, { type: 'frame', frame, zoomPercent });
     for (const port of popupPorts) port.postMessage(frame);
   }
 

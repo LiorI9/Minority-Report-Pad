@@ -2,7 +2,7 @@
  * Injects synthetic pointer/mouse events at the virtual cursor position.
  * This mirrors what the extension's content script will do in 0.1 (isTrusted === false).
  */
-export type CursorMode = 'move' | 'click' | 'scroll' | 'grab' | 'idle';
+export type CursorMode = 'move' | 'click' | 'scroll' | 'grab' | 'idle' | 'zoom';
 
 export class SyntheticInput {
   private x = 0;
@@ -18,6 +18,12 @@ export class SyntheticInput {
     if (mode === this.mode) return;
     this.cursorEl.classList.replace(`mode-${this.mode}`, `mode-${mode}`);
     this.mode = mode;
+  }
+
+  /** Small text under the cursor (e.g. zoom level); empty hides it. */
+  setLabel(text: string): void {
+    const label = this.cursorEl.querySelector('.label');
+    if (label && label.textContent !== text) label.textContent = text;
   }
 
   setVisible(visible: boolean): void {

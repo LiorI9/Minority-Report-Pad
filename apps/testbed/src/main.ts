@@ -178,7 +178,7 @@ function render(hands: HandInput[], frame: EngineFrame): void {
   ui.badge.className = `badge ${frame.clutch}`;
   ui.clutch.textContent = CLUTCH_LABEL[frame.clutch];
   ui.raw.textContent = frame.rawFingers === null ? '–' : String(frame.rawFingers);
-  ui.pose.textContent = frame.pose === null ? '–' : (POSE_LABEL[frame.pose] ?? String(frame.pose));
+  ui.pose.textContent = frame.zooming ? 'זום (V ביד הייחוס)' : frame.pose === null ? '–' : (POSE_LABEL[frame.pose] ?? String(frame.pose));
   const motion = frame.motionIndex === null ? undefined : hands[frame.motionIndex];
   ui.motionHand.textContent = motion ? HAND_LABEL[motion.handedness] : '–';
 }
@@ -214,10 +214,21 @@ function toast(text: string): void {
   toastTimer = window.setTimeout(() => (ui.toast.hidden = true), 900);
 }
 
+// Simulated browser zoom (no chrome.tabs here): CSS zoom on the target zones.
+const zoomTarget = document.querySelector<HTMLElement>('.targets')!;
+let zoomBase: number | null = null;
+let zoomLevel = 1;
+function applyZoom(factor: number): void {
+  if (zoomBase === null) return;
+  zoomLevel = Math.min(5, Math.max(0.25, zoomBase * factor));
+  zoomTarget.style.zoom = String(zoomLevel);
+}
+
 function handle(frame: EngineFrame): void {
   const control = ui.control.checked;
   input.setVisible(control && frame.clutch === 'active');
   input.setMode(cursorMode(frame));
+  input.setLabel(frame.zooming ? `${Math.round(zoomLevel * 100)}%` : '');
   if (control) input.move(frame.cursor.x * window.innerWidth, frame.cursor.y * window.innerHeight);
 
   for (const e of frame.events) {
@@ -230,6 +241,9 @@ function handle(frame: EngineFrame): void {
       case 'dragStart': input.dragStart(); break;
       case 'dragEnd': input.dragEnd(); break;
       case 'swipe': toast(e.direction === 'right' ? 'טאב הבא ←' : '→ טאב קודם'); break;
+      case 'zoomStart': zoomBase = zoomLevel; break;
+      case 'zoom': applyZoom(e.factor); break;
+      case 'zoomEnd': zoomBase = null; break;
       default: break;
     }
   }
@@ -238,6 +252,7 @@ function handle(frame: EngineFrame): void {
 
 const MODE_BY_POSE: Record<number, CursorMode> = { 0: 'idle', 1: 'click', 2: 'scroll', 3: 'grab', 5: 'move' };
 function cursorMode(frame: EngineFrame): CursorMode {
+  if (frame.zooming) return 'zoom';
   return frame.pose === null ? 'move' : (MODE_BY_POSE[frame.pose] ?? 'move');
 }
 
@@ -245,6 +260,7 @@ function logGesture(e: GestureEvent): void {
   switch (e.type) {
     case 'scroll':
     case 'dragMove':
+    case 'zoom':
       return; // too frequent; the DOM side of the log shows their effect
     case 'clutch': log.gesture('clutch', CLUTCH_LABEL[e.state]); break;
     case 'pose': log.gesture('pose', POSE_LABEL[e.pose] ?? String(e.pose)); break;

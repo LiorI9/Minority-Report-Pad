@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GestureEngine, type EngineFrame, type GestureEvent, type HandInput } from '../src/index.js';
-import { FIST, ONE, OPEN, THREE, TWO, hand, type Open } from './hands.js';
+import { FIST, ONE, OPEN, THREE, TWO, V, hand, type Open } from './hands.js';
 
 const FRAME = 33;
 
@@ -131,5 +131,71 @@ describe('GestureEngine poses', () => {
     d.clear();
     d.step(THREE, { ref: FIST, frames: 2 });
     expect(d.types()).toContain('dragEnd');
+  });
+});
+
+describe('GestureEngine zoom (reference hand V)', () => {
+  it('enters zoom mode once the V is stable and zooms in when hands move apart', () => {
+    const d = driver();
+    d.step(OPEN, { frames: 5 });
+    d.clear();
+    const f = d.step(OPEN, { ref: V, frames: 6 });
+    expect(f.zooming).toBe(true);
+    expect(f.clutch).toBe('active');
+    expect(d.types()).toContain('zoomStart');
+    d.clear();
+    // Motion hand (user's right) moves further right: image x decreases, hands spread.
+    d.step(OPEN, { ref: V, dx: -0.01, frames: 15 });
+    const zooms = d.events.filter((e) => e.type === 'zoom');
+    expect(zooms.length).toBeGreaterThan(0);
+    expect(zooms.at(-1)?.type === 'zoom' && zooms.at(-1)!.factor).toBeGreaterThan(1);
+  });
+
+  it('zooms out when the hands come closer', () => {
+    const d = driver();
+    d.step(OPEN, { frames: 5 });
+    d.step(OPEN, { ref: V, frames: 6 });
+    d.clear();
+    d.step(OPEN, { ref: V, dx: 0.01, frames: 15 });
+    const last = d.events.filter((e) => e.type === 'zoom').at(-1);
+    expect(last?.type === 'zoom' && last.factor).toBeLessThan(1);
+  });
+
+  it('leaves zoom mode when the reference hand opens again', () => {
+    const d = driver();
+    d.step(OPEN, { frames: 5 });
+    d.step(OPEN, { ref: V, frames: 6 });
+    d.clear();
+    const f = d.step(OPEN, { frames: 2 });
+    expect(f.zooming).toBe(false);
+    expect(d.types()).toContain('zoomEnd');
+  });
+
+  it('ignores motion-hand clicks while zooming', () => {
+    const d = driver();
+    d.step(OPEN, { frames: 5 });
+    d.step(OPEN, { ref: V, frames: 6 });
+    d.clear();
+    d.step(ONE, { ref: V, frames: 10 });
+    expect(d.types()).not.toContain('click');
+  });
+
+  it('does not zoom on a brief V while closing the reference hand into a fist', () => {
+    const d = driver();
+    d.step(OPEN, { frames: 5 });
+    d.clear();
+    d.step(OPEN, { ref: V, frames: 2 }); // 66ms < stableMs
+    d.step(OPEN, { ref: FIST, frames: 3 });
+    expect(d.types()).not.toContain('zoomStart');
+    expect(d.types()).toContain('clutch');
+  });
+
+  it('ends zoom when the clutch is released', () => {
+    const d = driver();
+    d.step(OPEN, { frames: 5 });
+    d.step(OPEN, { ref: V, frames: 6 });
+    d.clear();
+    d.step(OPEN, { ref: FIST, frames: 2 });
+    expect(d.types()).toContain('zoomEnd');
   });
 });
