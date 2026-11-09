@@ -21,6 +21,7 @@
 - **Visibility:** Unlisted
 - **Privacy policy URL:** https://liori9.github.io/Minority-Report-Pad/privacy.html
 - **Homepage / Support URL:** https://github.com/LiorI9/Minority-Report-Pad
+- **Contact (privacy):** lior.israel.mrp@frenziQ.com — מופיע במדיניות הפרטיות.
 
 ### Summary (עד 132 תווים)
 ```
