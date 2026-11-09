@@ -39,7 +39,7 @@ function renderState(s: PopupState): void {
 
 function renderFrame(f: FrameMessage): void {
   $('clutch').textContent = CLUTCH[f.clutch];
-  $('pose').textContent = f.zooming ? 'זום (V ביד הייחוס)' : f.pose === null ? '–' : (POSE[f.pose] ?? String(f.pose));
+  $('pose').textContent = f.zooming ? 'זום (אגרוף ביד הייחוס)' : f.pose === null ? '–' : (POSE[f.pose] ?? String(f.pose));
   $('fps').textContent = String(f.fps || '–');
   $('detect').textContent = `\u200E${f.detectMs} ms`;
   const { width: w, height: h } = canvas;

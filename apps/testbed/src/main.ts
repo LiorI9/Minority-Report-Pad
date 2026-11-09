@@ -178,7 +178,7 @@ function render(hands: HandInput[], frame: EngineFrame): void {
   ui.badge.className = `badge ${frame.clutch}`;
   ui.clutch.textContent = CLUTCH_LABEL[frame.clutch];
   ui.raw.textContent = frame.rawFingers === null ? '–' : String(frame.rawFingers);
-  ui.pose.textContent = frame.zooming ? 'זום (V ביד הייחוס)' : frame.pose === null ? '–' : (POSE_LABEL[frame.pose] ?? String(frame.pose));
+  ui.pose.textContent = frame.zooming ? 'זום (אגרוף ביד הייחוס)' : frame.pose === null ? '–' : (POSE_LABEL[frame.pose] ?? String(frame.pose));
   const motion = frame.motionIndex === null ? undefined : hands[frame.motionIndex];
   ui.motionHand.textContent = motion ? HAND_LABEL[motion.handedness] : '–';
 }

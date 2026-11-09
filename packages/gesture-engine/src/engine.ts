@@ -46,12 +46,12 @@ export interface EngineOptions {
   /** A 3-finger pose that travels `swipeDistance` within `swipeWindowMs` is a tab swipe, otherwise a drag. */
   swipeWindowMs: number;
   swipeDistance: number;
-  /** Reference hand with at least this many fingers activates the clutch. */
+  /** Reference hand with at least this many fingers activates the clutch. Lowering the hand pauses it. */
   clutchOpenMin: number;
-  /** Reference hand with at most this many fingers pauses the clutch. */
-  clutchClosedMax: number;
-  /** Reference hand with exactly this many fingers (V) enters zoom mode. */
-  zoomFingers: number;
+  /** Reference hand with at most this many fingers counts as a fist (= zoom mode, ADR-016). */
+  fistMaxFingers: number;
+  /** How long the reference fist must hold before zoom mode starts. */
+  zoomHoldMs: number;
   /** Minimum change in zoom factor before a new zoom event is emitted. */
   zoomDeadzone: number;
 }
@@ -66,8 +66,8 @@ export const DEFAULT_OPTIONS: EngineOptions = {
   swipeWindowMs: 300,
   swipeDistance: 0.08,
   clutchOpenMin: 4,
-  clutchClosedMax: 1,
-  zoomFingers: 2,
+  fistMaxFingers: 1,
+  zoomHoldMs: 300,
   zoomDeadzone: 0.02,
 };
 
@@ -139,7 +139,7 @@ export class GestureEngine {
 
   // Two-hand zoom.
   private zooming = false;
-  private refVSince: number | null = null;
+  private fistSince: number | null = null;
   private zoomD0 = 0;
   private lastZoomFactor = 1;
   private readonly fz = new OneEuroFilter();
@@ -197,10 +197,11 @@ export class GestureEngine {
     if (handCount === 0) next = 'no-hands';
     else if (!reference) next = 'paused';
     else {
+      // Open hand activates; anything else (including a fist = zoom) keeps the current state.
+      // Pausing is done by lowering the reference hand out of the frame (ADR-016).
       const f = countFingers(reference.landmarks);
       if (f >= this.options.clutchOpenMin) next = 'active';
-      else if (f <= this.options.clutchClosedMax) next = 'paused';
-      else next = this.clutch === 'active' ? 'active' : 'paused'; // hysteresis
+      else next = this.clutch === 'active' ? 'active' : 'paused';
     }
     if (next === this.clutch) return;
     if (this.clutch === 'active') this.deactivate(events);
@@ -212,7 +213,7 @@ export class GestureEngine {
     if (this.dragging) events.push({ type: 'dragEnd' });
     if (this.zooming) events.push({ type: 'zoomEnd' });
     this.zooming = false;
-    this.refVSince = null;
+    this.fistSince = null;
     this.dragging = false;
     this.pose = null;
     this.candidate = null;
@@ -264,16 +265,16 @@ export class GestureEngine {
   }
 
   /**
-   * Reference hand V (stable for stableMs) = zoom mode: the distance between the palms,
+   * Reference hand fist (held for zoomHoldMs) = zoom mode: the distance between the palms,
    * relative to the distance when the mode started, is the zoom factor.
    * Returns true while zooming, so the motion hand does nothing else.
    */
   private updateZoom(motion: HandInput, reference: HandInput, tMs: number, events: GestureEvent[]): boolean {
     const o = this.options;
-    const isV = countFingers(reference.landmarks) === o.zoomFingers;
-    if (!isV) this.refVSince = null;
-    else if (this.refVSince === null) this.refVSince = tMs;
-    const want = this.refVSince !== null && tMs - this.refVSince >= o.stableMs;
+    const isFist = countFingers(reference.landmarks) <= o.fistMaxFingers;
+    if (!isFist) this.fistSince = null;
+    else if (this.fistSince === null) this.fistSince = tMs;
+    const want = this.fistSince !== null && tMs - this.fistSince >= o.zoomHoldMs;
 
     const m = palmCenter(motion.landmarks);
     const r = palmCenter(reference.landmarks);

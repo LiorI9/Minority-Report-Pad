@@ -19,6 +19,7 @@
 | [013](013-mediapipe-packaging.md) | אריזת MediaPipe בתוך התוסף |
 | [014](014-two-hand-zoom.md) | זום בשתי ידיים — V ביד הייחוס + מרחק |
 | [015](015-hands-overlay.md) | הצגת הידיים כשלד שקוף על הדף |
+| [016](016-fist-zoom-lower-to-pause.md) | זום באגרוף ביד הייחוס; השהיה בהורדת היד |
 
 ## תבנית
 ```markdown
