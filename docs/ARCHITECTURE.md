@@ -75,7 +75,7 @@ WXT + TypeScript, MV3 ([ADR-005](adr/005-wxt-typescript.md)).
 | `offscreen/` | מצלמה + MediaPipe + `GestureEngine` בלולאת `setTimeout` (~30 FPS; `requestAnimationFrame` לא רץ במסמך מוסתר). GPU עם נפילה ל-CPU ([ADR-004](adr/004-offscreen-tracking.md)) |
 | `content.ts` | `SyntheticInput` בתוך Shadow DOM (`<mrp-pad>`), מבודד מעיצוב הדף. מסתיר את הסמן אם לא הגיע פריים 600ms |
 | `popup/` | מתג הפעלה, סטטוס, שלד ידיים חי (בלי וידאו), מצמד, תנוחה, FPS, זמן זיהוי, הגדרות מהירות |
-| `options/` | אישור מצלמה חד-פעמי (Offscreen לא יכול לבקש הרשאה) + כיול מלא |
+| `options/` | אישור מצלמה חד-פעמי (Offscreen לא יכול לבקש הרשאה) + כיול מלא. נפתח **בטאב** (`open_in_tab`), כי בתוך הדיאלוג של `chrome://extensions` כרום לא מציג בקשת הרשאה |
 
 ### הפעלה ([ADR-012](adr/012-activation.md))
 - קליק על האייקון פותח פופאפ עם מתג. `Alt+Shift+M` מדליק ומכבה ישירות.
@@ -123,6 +123,7 @@ WXT + TypeScript, MV3 ([ADR-005](adr/005-wxt-typescript.md)).
 - `scrollBy` מייצר אירועי `scroll` עם `isTrusted: true`. הגלילה לא צריכה debugger.
 - HTML5 Drag & Drop לא מגיב לאירועים סינתטיים, כצפוי.
 - לוג שמוסיף שורה ב-`mousedown` וגדל כלפי מעלה מזיז כפתורים באמצע לחיצה → פאנל עם תוכן דינמי חייב גובה קבוע.
+- בקשת הרשאת מצלמה לא מופיעה מתוך מסגרת מוטמעת (דיאלוג ההגדרות ב-`chrome://extensions`): הכפתור פשוט לא עושה כלום. → דף ההגדרות נפתח בטאב, ואם הוא בכל זאת מוטמע, הכפתור פותח טאב. שגיאת הרשאה מוצגת עם הוראות, כולל הרשאת מצלמה ברמת macOS.
 - `upload-artifact` מדלג על תיקיות נסתרות (כמו `.output/` של WXT) → צריך `include-hidden-files: true`, ו-`if-no-files-found: error` כדי שזה ייכשל בקול ולא בשקט.
 - `display` שמוגדר ב-CSS דורס את המאפיין `hidden` → צריך כלל `[hidden] { display: none }` מפורש.
 - MediaPipe בוחר בזמן ריצה בין WASM עם SIMD לבלי SIMD. ב-Chromium של סביבת הבדיקה הוא בחר בלי SIMD, ולכן אורזים את שניהם.

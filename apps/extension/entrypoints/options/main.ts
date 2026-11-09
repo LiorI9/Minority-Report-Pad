@@ -15,11 +15,24 @@ async function showPermission(): Promise<void> {
 
 // The offscreen document cannot show a permission prompt, so it is granted once here.
 grant.addEventListener('click', async () => {
+  // Inside an embedded frame (the chrome://extensions dialog) Chrome cannot show the prompt.
+  if (window.top !== window) {
+    await browser.tabs.create({ url: location.href });
+    return;
+  }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     stream.getTracks().forEach((t) => t.stop());
-  } catch {
-    // reflected by showPermission
+  } catch (err) {
+    const name = (err as DOMException).name;
+    grantStatus.textContent =
+      name === 'NotAllowedError'
+        ? '✗ הגישה נדחתה. בסרגל הכתובת: סמל המצלמה ← אפשר. ב-Mac גם: הגדרות מערכת ← פרטיות ואבטחה ← מצלמה ← Google Chrome.'
+        : name === 'NotFoundError'
+          ? '✗ לא נמצאה מצלמה'
+          : `✗ ${name}: ${(err as Error).message}`;
+    grantStatus.className = 'bad';
+    return;
   }
   await showPermission();
 });
