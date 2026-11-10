@@ -12,6 +12,10 @@ export interface Settings {
   swipeRight: 'next' | 'previous';
   /** Draw translucent hand skeletons over the page (ADR-015). */
   showHands: boolean;
+  /** Pointer acceleration: slow = precise, fast = far (ADR-019). */
+  acceleration: boolean;
+  /** Glow around the element the cursor is about to click (ADR-020). */
+  highlightTarget: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -23,6 +27,8 @@ export const DEFAULT_SETTINGS: Settings = {
   naturalScroll: true,
   swipeRight: 'next',
   showHands: false,
+  acceleration: true,
+  highlightTarget: true,
 };
 
 /** The subset of settings the gesture engine consumes. */
@@ -32,6 +38,7 @@ export const engineOptions = (s: Settings) => ({
   stableMs: s.stableMs,
   scrollGain: s.scrollGain,
   naturalScroll: s.naturalScroll,
+  acceleration: s.acceleration,
 });
 
 /** One processed camera frame, as sent from the offscreen document. */

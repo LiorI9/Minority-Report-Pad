@@ -62,6 +62,8 @@ async function start(): Promise<void> {
     void setStatus('error', describe('video', err));
     return;
   }
+  // Finger angles are measured in uniform units, so the engine needs the frame's shape.
+  if (video.videoWidth && video.videoHeight) engine.setOptions({ aspect: video.videoWidth / video.videoHeight });
   void setStatus('running');
   loop();
 }

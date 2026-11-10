@@ -21,6 +21,9 @@
 | [015](015-hands-overlay.md) | הצגת הידיים כשלד שקוף על הדף |
 | [016](016-fist-zoom-lower-to-pause.md) | זום באגרוף ביד הייחוס; השהיה בהורדת היד |
 | [017](017-store-publishing.md) | פרסום ב-Chrome Web Store — Unlisted, עם השם הנוכחי |
+| [018](018-joint-angle-poses.md) | זיהוי תנוחה לפי זוויות מפרקים, בלי האגודל |
+| [019](019-cursor-acceleration.md) | האצת סמן וכיול מחדש של ההחלקה |
+| [020](020-target-highlight.md) | הדגשת האלמנט שעומדים ללחוץ עליו |
 
 ## תבנית
 ```markdown

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GestureEngine, type EngineFrame, type GestureEvent, type HandInput } from '../src/index.js';
+import { GestureEngine, accelerationScale, type EngineFrame, type GestureEvent, type HandInput } from '../src/index.js';
 import { FIST, ONE, OPEN, THREE, TWO, hand, type Open } from './hands.js';
 
 const FRAME = 33;
@@ -131,6 +131,37 @@ describe('GestureEngine poses', () => {
     d.clear();
     d.step(THREE, { ref: null, frames: 2 });
     expect(d.types()).toContain('dragEnd');
+  });
+});
+
+describe('GestureEngine cursor acceleration', () => {
+  /** Cursor travel for the same 0.05 of hand travel, at a given hand speed per frame. */
+  const travel = (perFrame: number, acceleration: boolean) => {
+    const d = driver(new GestureEngine({ stableMs: 100, acceleration }));
+    const start = d.step(OPEN, { frames: 8 }).cursor.x;
+    // User moves left (image x grows), away from the screen edge clamp at 1.
+    const frames = Math.round(0.05 / perFrame);
+    return start - d.step(OPEN, { dx: perFrame, frames }).cursor.x;
+  };
+
+  it('scales from fine to fast with hand speed', () => {
+    expect(accelerationScale(0)).toBeLessThan(1);
+    expect(accelerationScale(10)).toBeGreaterThan(1);
+    expect(accelerationScale(0.3)).toBeGreaterThan(accelerationScale(0.1));
+  });
+
+  it('moves the cursor further for a fast move than a slow one over the same distance', () => {
+    const slow = travel(0.001, true); // ~0.03 of the frame per second
+    const fast = travel(0.025, true); // ~0.75 per second
+    expect(slow).toBeGreaterThan(0);
+    expect(fast).toBeGreaterThan(slow * 1.5);
+  });
+
+  it('does not amplify fast moves when acceleration is off', () => {
+    const slow = travel(0.001, false);
+    const fast = travel(0.025, false);
+    expect(slow).toBeCloseTo(0.05 * 3, 1); // plain gain
+    expect(fast).toBeLessThanOrEqual(slow * 1.05); // smoothing lag may shorten it, never lengthen
   });
 });
 

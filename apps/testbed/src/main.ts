@@ -1,6 +1,6 @@
 import { FilesetResolver, HandLandmarker, type HandLandmarkerResult } from '@mediapipe/tasks-vision';
 import { GestureEngine, type EngineFrame, type GestureEvent, type HandInput, type Handedness } from '@mrp/gesture-engine';
-import { SyntheticInput, mountCursor, type CursorMode } from '@mrp/page-input';
+import { SyntheticInput, TargetHighlight, mountCursor, type CursorMode } from '@mrp/page-input';
 import { EventLog } from './log';
 import { setupTargets } from './targets';
 
@@ -29,6 +29,8 @@ const ui = {
   control: $<HTMLInputElement>('control'),
   scrollGain: $<HTMLInputElement>('scroll-gain'),
   natural: $<HTMLInputElement>('natural'),
+  acceleration: $<HTMLInputElement>('acceleration'),
+  highlight: $<HTMLInputElement>('highlight'),
 };
 
 const CONNECTIONS: [number, number][] = [
@@ -43,6 +45,7 @@ const HAND_LABEL: Record<Handedness, string> = { Right: 'ימין', Left: 'שמ�
 const POSE_LABEL: Record<number, string> = { 0: 'אגרוף', 1: '1 · לחיצה', 2: '2 · ימנית/גלילה', 3: '3 · גרירה/טאב', 5: '5 · תזוזה' };
 
 const engine = new GestureEngine();
+const highlight = new TargetHighlight(document.body);
 const input = new SyntheticInput(mountCursor(document.body));
 const log = new EventLog($<HTMLTableSectionElement>('log-body'));
 setupTargets();
@@ -88,12 +91,13 @@ function applySettings(): void {
     stableMs: Number(ui.stable.value),
     scrollGain: Number(ui.scrollGain.value),
     naturalScroll: ui.natural.checked,
+    acceleration: ui.acceleration.checked,
   });
   $('scroll-out').textContent = ui.scrollGain.value;
   $('gain-out').textContent = ui.gain.value;
   $('stable-out').textContent = ui.stable.value;
 }
-[ui.dominant, ui.gain, ui.stable, ui.scrollGain, ui.natural].forEach((el) => el.addEventListener('input', applySettings));
+[ui.dominant, ui.gain, ui.stable, ui.scrollGain, ui.natural, ui.acceleration].forEach((el) => el.addEventListener('input', applySettings));
 applySettings();
 
 // --- Camera + model ---------------------------------------------------------
@@ -118,6 +122,7 @@ async function start(): Promise<void> {
       audio: false,
     });
     await video.play();
+    engine.setOptions({ aspect: video.videoWidth / video.videoHeight });
     ui.status.textContent = `מצלמה פעילה · ${video.videoWidth}×${video.videoHeight}`;
     requestAnimationFrame(loop);
   } catch (err) {
@@ -229,13 +234,18 @@ function handle(frame: EngineFrame): void {
   input.setVisible(control && frame.clutch === 'active');
   input.setMode(cursorMode(frame));
   input.setLabel(frame.zooming ? `${Math.round(zoomLevel * 100)}%` : '');
-  if (control) input.move(frame.cursor.x * window.innerWidth, frame.cursor.y * window.innerHeight);
+  const x = frame.cursor.x * window.innerWidth;
+  const y = frame.cursor.y * window.innerHeight;
+  if (control) input.move(x, y);
+  const aiming = control && frame.clutch === 'active' && !frame.zooming && !frame.dragging && (frame.pose === null || frame.pose === 5 || frame.pose === 1);
+  highlight.setEnabled(ui.highlight.checked);
+  highlight.update(x, y, aiming);
 
   for (const e of frame.events) {
     logGesture(e);
     if (!control) continue;
     switch (e.type) {
-      case 'click': input.click(); break;
+      case 'click': input.click(); highlight.pulse(); break;
       case 'rightClick': input.rightClick(); break;
       case 'scroll': input.scroll(e.dx, e.dy); break;
       case 'dragStart': input.dragStart(); break;
@@ -270,4 +280,4 @@ function logGesture(e: GestureEvent): void {
 }
 
 // Debug handle for console experiments and automated checks.
-Object.assign(window, { mrp: { engine, input, log } });
+Object.assign(window, { mrp: { engine, input, log, highlight } });

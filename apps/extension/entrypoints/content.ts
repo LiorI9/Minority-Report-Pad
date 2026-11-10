@@ -1,4 +1,4 @@
-import { HandsOverlay, SyntheticInput, mountCursor, type CursorMode } from '@mrp/page-input';
+import { HandsOverlay, SyntheticInput, TargetHighlight, mountCursor, type CursorMode } from '@mrp/page-input';
 import { loadSettings, type ContentMessage, type FrameMessage } from '@/utils/messages';
 
 const MODE_BY_POSE: Record<number, CursorMode> = { 0: 'idle', 1: 'click', 2: 'scroll', 3: 'grab', 5: 'move' };
@@ -19,8 +19,13 @@ export default defineContentScript({
     const shadow = host.attachShadow({ mode: 'closed' });
     document.documentElement.append(host);
     const overlay = new HandsOverlay(shadow); // appended first, so the cursor draws above it
+    const highlight = new TargetHighlight(shadow);
     const input = new SyntheticInput(mountCursor(shadow));
-    const applySettings = () => loadSettings().then((s) => overlay.setEnabled(s.showHands));
+    const applySettings = () =>
+      loadSettings().then((s) => {
+        overlay.setEnabled(s.showHands);
+        highlight.setEnabled(s.highlightTarget);
+      });
     void applySettings();
     browser.storage.onChanged.addListener((changes) => {
       if (changes.settings) void applySettings();
@@ -31,6 +36,7 @@ export default defineContentScript({
       input.dragEnd();
       input.setVisible(false);
       overlay.clear();
+      highlight.hide();
     };
 
     const onFrame = (frame: FrameMessage, zoomPercent?: number) => {
@@ -41,11 +47,16 @@ export default defineContentScript({
       input.setMode(frame.zooming ? 'zoom' : frame.pose === null ? 'move' : (MODE_BY_POSE[frame.pose] ?? 'move'));
       input.setLabel(frame.zooming && zoomPercent !== undefined ? `${zoomPercent}%` : '');
       overlay.draw(frame.hands, frame.aspect);
-      input.move(frame.cursor.x * window.innerWidth, frame.cursor.y * window.innerHeight);
+      const x = frame.cursor.x * window.innerWidth;
+      const y = frame.cursor.y * window.innerHeight;
+      input.move(x, y);
+      // Frame what a click would hit, while moving (5) or clicking (1).
+      const aiming = frame.clutch === 'active' && !frame.zooming && !frame.dragging && (frame.pose === null || frame.pose === 5 || frame.pose === 1);
+      highlight.update(x, y, aiming);
 
       for (const e of frame.events) {
         switch (e.type) {
-          case 'click': input.click(); break;
+          case 'click': input.click(); highlight.pulse(); break;
           case 'rightClick': input.rightClick(); break;
           case 'scroll': input.scroll(e.dx, e.dy); break;
           case 'dragStart': input.dragStart(); break;
